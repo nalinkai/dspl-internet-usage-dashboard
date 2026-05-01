@@ -3,20 +3,40 @@ import pandas as pd
 import plotly.express as px
 import base64
 
-# Page config
+# ------------------ PAGE CONFIG ------------------
 st.set_page_config(
     page_title="Global Internet Usage Dashboard",
     page_icon="🌐",
     layout="wide"
 )
 
-# UI Styling
+# ------------------ PLOT CONFIG ------------------
+PLOT_CONFIG = {
+    "displayModeBar": True,
+    "displaylogo": False,
+    "modeBarButtonsToRemove": [
+        "zoom",
+        "pan",
+        "select",
+        "lasso",
+        "zoomIn",
+        "zoomOut",
+        "autoScale",
+        "resetScale",
+        "hoverClosestCartesian",
+        "hoverCompareCartesian",
+        "toggleSpikelines"
+    ]
+}
+
+# ------------------ STYLING ------------------
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] {
     background-color: #0f172a;
 }
 
+/* Tabs */
 button[data-baseweb="tab"] {
     font-size: 15px;
     color: #e5e7eb;
@@ -31,21 +51,18 @@ button[aria-selected="true"] {
     background-color: rgba(15, 23, 42, 0.9);
 }
 
-/* Dark overlay */
+/* Overlay FIXED */
 .stApp::before {
     content: "";
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0,0,0,0.45);
-    z-index: -1;
+    pointer-events: none;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Background image
+# ------------------ BACKGROUND ------------------
 def set_background(image_path):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
@@ -62,14 +79,14 @@ def set_background(image_path):
 
 set_background("background.jpg")
 
-# Load data
+# ------------------ LOAD DATA ------------------
 @st.cache_data
 def load_data():
     return pd.read_csv("data/processed/cleaned_data.csv")
 
 df = load_data()
 
-# Theme
+# ------------------ THEME ------------------
 def apply_dark_theme(fig):
     fig.update_layout(
         template="plotly_dark",
@@ -79,13 +96,15 @@ def apply_dark_theme(fig):
     )
     return fig
 
-# Sidebar filters
+# ------------------ FILTERS ------------------
 st.sidebar.markdown("## 🔎 Filters")
 
-min_year = int(df["Year"].min())
-max_year = int(df["Year"].max())
-
-year_range = st.sidebar.slider("Year Range", min_year, max_year, (min_year, max_year))
+year_range = st.sidebar.slider(
+    "Year Range",
+    int(df["Year"].min()),
+    int(df["Year"].max()),
+    (int(df["Year"].min()), int(df["Year"].max()))
+)
 
 country_list = sorted(df["Country"].unique())
 selected_country = st.sidebar.multiselect("Country", ["All"] + country_list, default=["All"])
@@ -96,7 +115,7 @@ selected_region = st.sidebar.multiselect("Region", ["All"] + region_list, defaul
 income_list = sorted(df["IncomeGroup"].dropna().unique())
 selected_income = st.sidebar.multiselect("Income Group", ["All"] + income_list, default=["All"])
 
-# Filtering
+# ------------------ FILTER LOGIC ------------------
 filtered_df = df[
     (df["Year"] >= year_range[0]) &
     (df["Year"] <= year_range[1])
@@ -115,24 +134,22 @@ if filtered_df.empty:
     st.warning("⚠️ No data available for selected filters.")
     st.stop()
 
-# Title
+# ------------------ TITLE ------------------
 st.markdown(f"""
 # 🌐 Global Internet Usage Dashboard ({year_range[0]} - {year_range[1]})
 Explore internet usage across countries, regions, and income groups.
 """)
 
-# KPIs
+# ------------------ KPI ------------------
 col1, col2, col3 = st.columns(3)
 
 col1.metric("🌍 Avg Usage (%)", f"{filtered_df['Internet_Users_Percent'].mean():.2f}")
-col2.metric("🏆 Top Country",
-            filtered_df.loc[filtered_df["Internet_Users_Percent"].idxmax(), "Country"])
-col3.metric("📉 Lowest Country",
-            filtered_df.loc[filtered_df["Internet_Users_Percent"].idxmin(), "Country"])
+col2.metric("🏆 Top Country", filtered_df.loc[filtered_df["Internet_Users_Percent"].idxmax(), "Country"])
+col3.metric("📉 Lowest Country", filtered_df.loc[filtered_df["Internet_Users_Percent"].idxmin(), "Country"])
 
 st.markdown("---")
 
-# Tabs
+# ------------------ TABS ------------------
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📈 Global Trends",
     "🌍 Regional Comparison",
@@ -142,54 +159,41 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📋 Data View"
 ])
 
-# Global trend
+# ------------------ GLOBAL TREND ------------------
 with tab1:
     trend = filtered_df.groupby("Year")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.line(trend, x="Year", y="Internet_Users_Percent", markers=True)
     fig.update_traces(hovertemplate="Year: %{x}<br>Usage: %{y:.2f}%")
-    fig = apply_dark_theme(fig)
+    st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
-
-# Region
+# ------------------ REGION ------------------
 with tab2:
     region_df = filtered_df.groupby("Region")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
-    fig = apply_dark_theme(fig)
+    st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
-
-    # Drill-down
-    selected_region_drill = st.selectbox("🔍 Select region for deeper analysis", region_df["Region"])
+    selected_region_drill = st.selectbox("🔍 Drill-down Region", region_df["Region"])
 
     drill_df = filtered_df[filtered_df["Region"] == selected_region_drill]
 
     top_countries = (
         drill_df.groupby("Country")["Internet_Users_Percent"]
-        .mean()
-        .sort_values(ascending=False)
-        .head(10)
-        .reset_index()
+        .mean().sort_values(ascending=False).head(10).reset_index()
     )
 
-    fig2 = px.bar(top_countries, x="Country", y="Internet_Users_Percent",
-                  title=f"Top Countries in {selected_region_drill}")
-    fig2 = apply_dark_theme(fig2)
+    fig2 = px.bar(top_countries, x="Country", y="Internet_Users_Percent")
+    st.plotly_chart(apply_dark_theme(fig2), use_container_width=True, config=PLOT_CONFIG)
 
-    st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
-
-# Income
+# ------------------ INCOME ------------------
 with tab3:
     income_df = filtered_df.groupby("IncomeGroup")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
-    fig = apply_dark_theme(fig)
+    st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
-
-# Country Analysis
+# ------------------ COUNTRY ------------------
 with tab4:
     selected_compare = st.multiselect("Select up to 5 countries", country_list)
 
@@ -202,11 +206,10 @@ with tab4:
 
         fig = px.line(compare_df, x="Year", y="Internet_Users_Percent",
                       color="Country", markers=True)
-        fig = apply_dark_theme(fig)
 
-        st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
+        st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-# Map
+# ------------------ MAP ------------------
 with tab5:
     map_df = filtered_df.sort_values("Year").groupby("Code").tail(1)
 
@@ -232,7 +235,7 @@ with tab5:
 
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
-# Data
+# ------------------ DATA ------------------
 with tab6:
     st.dataframe(filtered_df.head(200), use_container_width=True)
 
@@ -242,9 +245,9 @@ with tab6:
         "filtered_data.csv"
     )
 
-# Footer
+# ------------------ FOOTER ------------------
 st.markdown("---")
 st.markdown(
-    "<p style='text-align:center; color:#cbd5e1;'>Project By: w2055140_Nalinka Iluppalla | DSPL Individual CW</p>",
+    "<p style='text-align:center; color:#cbd5e1;'>Project By: w2055140 Nalinka Iluppalla | DSPL Coursework</p>",
     unsafe_allow_html=True
 )
