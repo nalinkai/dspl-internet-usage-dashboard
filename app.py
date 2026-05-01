@@ -36,7 +36,7 @@ def set_background(image_path):
         unsafe_allow_html=True
     )
 
-set_background("background.jpeg") 
+set_background("background.jpg") 
 
 # Load cleaned dataset
 @st.cache_data
