@@ -281,22 +281,3 @@ with tab6:
         filtered_df.to_csv(index=False),
         "filtered_data.csv"
     )
-
-st.plotly_chart(
-    fig,
-    use_container_width=True,
-    config={
-        "displayModeBar": True,
-        "modeBarButtonsToRemove": [
-            "zoom2d",
-            "pan2d",
-            "select2d",
-            "lasso2d",
-            "zoomIn2d",
-            "zoomOut2d",
-            "autoScale2d",
-            "resetScale2d"
-        ],
-        "scrollZoom": False
-    }
-)
