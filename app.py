@@ -3,87 +3,84 @@ import pandas as pd
 import plotly.express as px
 import base64
 
-# ---------------- Page setup ----------------
+# Page configuration
 st.set_page_config(
     page_title="Global Internet Usage Dashboard",
     page_icon="🌐",
     layout="wide"
 )
 
-# ---------------- Theme toggle ----------------
-mode = st.sidebar.radio("🎨 Theme Mode", ["Dark", "Light"], index=0)
+# Sidebar styling
+st.markdown("""
+<style>
+section[data-testid="stSidebar"] {
+    background-color: #0f172a;
+}
 
-if mode == "Dark":
-    bg_overlay = "rgba(0,0,0,0.5)"
-    text_color = "white"
-else:
-    bg_overlay = "rgba(255,255,255,0.7)"
-    text_color = "black"
+/* Improve tab readability */
+button[data-baseweb="tab"] {
+    font-size: 15px;
+    color: #e5e7eb;
+    background-color: rgba(15, 23, 42, 0.6);
+    border-radius: 6px;
+    padding: 6px;
+}
 
-# ---------------- Background setup ----------------
+button[aria-selected="true"] {
+    color: #ffffff !important;
+    border-bottom: 3px solid #3b82f6 !important;
+    background-color: rgba(15, 23, 42, 0.9);
+}
+
+/* Dark overlay for background */
+.stApp::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    z-index: -1;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Set background image
 def set_background(image_path):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
 
     st.markdown(f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/jpg;base64,{encoded}");
-            background-size: cover;
-        }}
-
-        .stApp::before {{
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: {bg_overlay};
-            z-index: -1;
-        }}
-
-        section[data-testid="stSidebar"] {{
-            background-color: #0f172a;
-        }}
-
-        button[data-baseweb="tab"] {{
-            font-size: 16px;
-            color: #e5e7eb;
-            background-color: rgba(15, 23, 42, 0.6);
-            border-radius: 8px;
-            padding: 8px;
-        }}
-
-        button[aria-selected="true"] {{
-            color: #ffffff !important;
-            border-bottom: 3px solid #3b82f6 !important;
-            background-color: rgba(15, 23, 42, 0.9);
-        }}
-
-        </style>
+    <style>
+    .stApp {{
+        background-image: url("data:image/jpg;base64,{encoded}");
+        background-size: cover;
+        background-attachment: fixed;
+    }}
+    </style>
     """, unsafe_allow_html=True)
 
 set_background("background.jpg")
 
-# ---------------- Load data ----------------
+# Load dataset
 @st.cache_data
 def load_data():
     return pd.read_csv("data/processed/cleaned_data.csv")
 
 df = load_data()
 
-# ---------------- Chart theme ----------------
-def apply_theme(fig):
+# Apply dark theme to charts
+def apply_dark_theme(fig):
     fig.update_layout(
-        template="plotly_dark" if mode == "Dark" else "plotly_white",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=text_color)
+        template="plotly_dark",
+        paper_bgcolor="#0e1117",
+        plot_bgcolor="#0e1117",
+        font=dict(color="white")
     )
     return fig
 
-# ---------------- Sidebar filters ----------------
+# Sidebar filters
 st.sidebar.markdown("## 🔎 Filters")
 
 min_year = int(df["Year"].min())
@@ -117,7 +114,7 @@ selected_income = st.sidebar.multiselect(
     default=["All"]
 )
 
-# ---------------- Filtering ----------------
+# Apply filtering
 filtered_df = df.copy()
 
 filtered_df = filtered_df[
@@ -134,28 +131,35 @@ if "All" not in selected_region:
 if "All" not in selected_income:
     filtered_df = filtered_df[filtered_df["IncomeGroup"].isin(selected_income)]
 
+# Handle empty data
 if filtered_df.empty:
-    st.warning("⚠️ No data found. Try adjusting filters.")
+    st.warning("⚠️ No data available for selected filters.")
     st.stop()
 
-# ---------------- Title ----------------
+# Title
 st.markdown(f"""
 # 🌐 Global Internet Usage Dashboard ({year_range[0]} - {year_range[1]})
 Explore internet usage across countries, regions, and income groups.
 """)
 
-# ---------------- KPIs ----------------
+# KPI section
 col1, col2, col3 = st.columns(3)
 
-col1.metric("🌍 Avg Usage (%)", f"{filtered_df['Internet_Users_Percent'].mean():.2f}")
-col2.metric("🏆 Top Country",
-            filtered_df.loc[filtered_df["Internet_Users_Percent"].idxmax(), "Country"])
-col3.metric("📉 Lowest Country",
-            filtered_df.loc[filtered_df["Internet_Users_Percent"].idxmin(), "Country"])
+avg_usage = filtered_df["Internet_Users_Percent"].mean()
+top_country = filtered_df.loc[
+    filtered_df["Internet_Users_Percent"].idxmax(), "Country"
+]
+low_country = filtered_df.loc[
+    filtered_df["Internet_Users_Percent"].idxmin(), "Country"
+]
+
+col1.metric("🌍 Avg Usage (%)", f"{avg_usage:.2f}")
+col2.metric("🏆 Top Country", top_country)
+col3.metric("📉 Lowest Country", low_country)
 
 st.markdown("---")
 
-# ---------------- Tabs ----------------
+# Tabs
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📈 Global Trends",
     "🌍 Regional Comparison",
@@ -165,56 +169,76 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📋 Data View"
 ])
 
-# ---------------- Global trends ----------------
+# Global trend
 with tab1:
+    st.subheader("📈 Global Internet Usage Over Time")
+
     trend = filtered_df.groupby("Year")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.line(trend, x="Year", y="Internet_Users_Percent", markers=True)
     fig.update_traces(
-        hovertemplate="<b>Year:</b> %{x}<br><b>Usage:</b> %{y:.2f}%"
+        hovertemplate="<b>Year:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
     )
-    st.plotly_chart(apply_theme(fig), use_container_width=True)
+    fig = apply_dark_theme(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
-# ---------------- Region ----------------
+    st.info(
+        f"Internet usage increased from {trend['Internet_Users_Percent'].min():.1f}% "
+        f"to {trend['Internet_Users_Percent'].max():.1f}%."
+    )
+
+# Region comparison
 with tab2:
+    st.subheader("🌍 Average Internet Usage by Region")
+
     region_df = filtered_df.groupby("Region")["Internet_Users_Percent"].mean().reset_index()
+    region_df = region_df.sort_values("Internet_Users_Percent", ascending=False)
 
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
     fig.update_traces(
-        hovertemplate="<b>Region:</b> %{x}<br><b>Usage:</b> %{y:.2f}%"
+        hovertemplate="<b>Region:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
     )
-    st.plotly_chart(apply_theme(fig), use_container_width=True)
+    fig = apply_dark_theme(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
-# ---------------- Income ----------------
+# Income comparison
 with tab3:
+    st.subheader("💰 Internet Usage by Income Group")
+
     income_df = filtered_df.groupby("IncomeGroup")["Internet_Users_Percent"].mean().reset_index()
+    income_df = income_df.sort_values("Internet_Users_Percent", ascending=False)
 
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
-    st.plotly_chart(apply_theme(fig), use_container_width=True)
+    fig.update_traces(
+        hovertemplate="<b>Group:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
+    )
+    fig = apply_dark_theme(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
-# ---------------- Country analysis ----------------
+# Country comparison
 with tab4:
-    st.markdown("### Select up to 5 countries")
+    st.subheader("🔎 Compare Countries")
 
     selected_compare = st.multiselect(
-        "Choose countries",
+        "Select up to 5 countries",
         country_list
     )
 
     if len(selected_compare) == 0:
         st.info("Please select up to 5 countries to compare.")
-
     elif len(selected_compare) > 5:
         st.warning("Maximum 5 countries allowed.")
-
     else:
         compare_df = filtered_df[filtered_df["Country"].isin(selected_compare)]
 
         fig = px.line(compare_df, x="Year", y="Internet_Users_Percent", color="Country", markers=True)
-        st.plotly_chart(apply_theme(fig), use_container_width=True)
+        fig = apply_dark_theme(fig)
+        st.plotly_chart(fig, use_container_width=True)
 
-# ---------------- Map ----------------
+# World map
 with tab5:
+    st.subheader("🗺️ Global Internet Usage Map")
+
     map_df = filtered_df.sort_values("Year").groupby("Code").tail(1)
 
     fig = px.choropleth(
@@ -222,19 +246,28 @@ with tab5:
         locations="Code",
         color="Internet_Users_Percent",
         hover_name="Country",
-        hover_data={"Internet_Users_Percent": True},
         color_continuous_scale="Viridis"
     )
 
     fig.update_geos(
+        bgcolor="#0e1117",
+        landcolor="#1f2a38",
         showcountries=True,
-        countrycolor="gray"
+        countrycolor="gray",
+        projection_type="natural earth"
     )
 
-    st.plotly_chart(apply_theme(fig), use_container_width=True)
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0)
+    )
 
-# ---------------- Data view ----------------
+    st.plotly_chart(fig, use_container_width=True)
+    st.caption("Map shows latest available data for each country.")
+
+# Data view
 with tab6:
+    st.subheader("📋 Filtered Dataset")
+
     st.dataframe(filtered_df.head(200), use_container_width=True)
 
     st.download_button(
