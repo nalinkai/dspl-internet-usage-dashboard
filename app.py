@@ -18,6 +18,26 @@ section[data-testid="stSidebar"] {
 </style>
 """, unsafe_allow_html=True)
 
+#setting a background image 
+def set_background(image_path):
+    with open(image_path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+set_background("background.jpeg") 
+
 # Load cleaned dataset
 @st.cache_data
 def load_data():
