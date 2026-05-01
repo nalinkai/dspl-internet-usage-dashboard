@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Page configuration
+# Basic page setup
 st.set_page_config(
     page_title="Global Internet Usage Dashboard",
     page_icon="🌐",
@@ -18,7 +18,7 @@ section[data-testid="stSidebar"] {
 </style>
 """, unsafe_allow_html=True)
 
-# Background image setup
+# Optional background image
 def set_background(image_path):
     import base64
     with open(image_path, "rb") as f:
@@ -36,7 +36,7 @@ def set_background(image_path):
 set_background("background.jpg")
 
 
-# Load dataset
+# Load cleaned dataset
 @st.cache_data
 def load_data():
     return pd.read_csv("data/processed/cleaned_data.csv")
@@ -90,7 +90,7 @@ selected_income = st.sidebar.multiselect(
 )
 
 
-# Filtering logic
+# Apply filtering
 filtered_df = df.copy()
 
 filtered_df = filtered_df[
@@ -157,6 +157,9 @@ with tab1:
     trend = filtered_df.groupby("Year")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.line(trend, x="Year", y="Internet_Users_Percent", markers=True)
+    fig.update_traces(
+        hovertemplate="<b>Year:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
+    )
     fig = apply_dark_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -174,6 +177,9 @@ with tab2:
     region_df = region_df.sort_values("Internet_Users_Percent", ascending=False)
 
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
+    fig.update_traces(
+        hovertemplate="<b>Region:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
+    )
     fig = apply_dark_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -189,6 +195,9 @@ with tab3:
     income_df = income_df.sort_values("Internet_Users_Percent", ascending=False)
 
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
+    fig.update_traces(
+        hovertemplate="<b>Income:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
+    )
     fig = apply_dark_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
 
@@ -196,35 +205,31 @@ with tab3:
     st.info(f"{top_income['IncomeGroup']} countries show the highest usage ({top_income['Internet_Users_Percent']:.1f}%)")
 
 
-# Country comparison
+# Country comparison (clean UX)
 with tab4:
     st.subheader("🔎 Compare Countries")
 
     selected_compare = st.multiselect(
-        "Select Countries to Compare",
-        ["All"] + country_list,
-        default=["All"]
+        "Select up to 5 countries",
+        country_list
     )
 
-    if "All" in selected_compare:
-        top5 = (
-            filtered_df.sort_values("Internet_Users_Percent", ascending=False)
-            .groupby("Country")
-            .tail(1)
-            .nlargest(5, "Internet_Users_Percent")["Country"]
-        )
-        compare_df = filtered_df[filtered_df["Country"].isin(top5)]
-    else:
-        if len(selected_compare) > 5:
-            st.warning("Select up to 5 countries for better comparison.")
-            st.stop()
-        compare_df = filtered_df[filtered_df["Country"].isin(selected_compare)]
+    if len(selected_compare) == 0:
+        st.info("Please select up to 5 countries to compare.")
+        st.stop()
 
-    fig = px.line(compare_df, x="Year", y="Internet_Users_Percent", color="Country")
+    if len(selected_compare) > 5:
+        st.warning("You can select a maximum of 5 countries.")
+        st.stop()
+
+    compare_df = filtered_df[filtered_df["Country"].isin(selected_compare)]
+
+    fig = px.line(compare_df, x="Year", y="Internet_Users_Percent", color="Country", markers=True)
+    fig.update_traces(
+        hovertemplate="<b>Country:</b> %{legendgroup}<br><b>Year:</b> %{x}<br><b>Usage:</b> %{y:.2f}%<extra></extra>"
+    )
     fig = apply_dark_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
-
-    st.info("Tip: Select up to 5 countries for a clearer comparison.")
 
 
 # World map
@@ -241,16 +246,27 @@ with tab5:
         color_continuous_scale="Viridis"
     )
 
-    fig.update_geos(
-        bgcolor="#0e1117",
-        landcolor="#1f2a38",
-        showcountries=True,
-        countrycolor="gray"
+    fig.update_traces(
+        hovertemplate="<b>%{hovertext}</b><br>Usage: %{z:.2f}%<extra></extra>"
+    )
+
+    fig.update_layout(
+        geo=dict(
+            bgcolor="#0e1117",
+            showcoastlines=True,
+            coastlinecolor="gray",
+            projection_type="natural earth"
+        ),
+        coloraxis_colorbar=dict(title="Usage %"),
+        margin=dict(l=0, r=0, t=40, b=0)
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
-    st.caption("Map shows latest available data for each country.")
+    top_map = map_df.loc[map_df["Internet_Users_Percent"].idxmax()]
+    st.success(f"🌍 Highest usage: {top_map['Country']} ({top_map['Internet_Users_Percent']:.1f}%)")
+
+    st.caption("Map shows the latest available data for each country.")
 
 
 # Data view
