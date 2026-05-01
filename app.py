@@ -13,7 +13,9 @@ st.set_page_config(
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] {
-    background-color: #0f172a;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(10px);
+    color: #e2e8f0;
 }
 </style>
 """, unsafe_allow_html=True)
