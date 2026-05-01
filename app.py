@@ -236,11 +236,11 @@ with tab4:
         st.plotly_chart(fig, use_container_width=True)
 
 # World map
-# World map
 with tab5:
     st.subheader("🗺️ Global Internet Usage Map")
 
     map_df = filtered_df.sort_values("Year").groupby("Code").tail(1)
+    map_df = map_df.dropna(subset=["Code", "Internet_Users_Percent"])
 
     fig = px.choropleth(
         map_df,
@@ -250,27 +250,25 @@ with tab5:
         color_continuous_scale="Viridis"
     )
 
+    fig.update_traces(
+        hovertemplate="<b>%{hovertext}</b><br>Usage: %{z:.2f}%<extra></extra>"
+    )
+
     fig.update_geos(
         bgcolor="#0e1117",
         landcolor="#1f2a38",
         showcountries=True,
-        countrycolor="gray",
-        projection_type="natural earth"
-    )
-
-    fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0)
+        countrycolor="gray"
     )
 
     st.plotly_chart(
         fig,
         use_container_width=True,
         config={
-            "staticPlot": True   # BEST OPTION
+            "scrollZoom": False,
+            "displayModeBar": False
         }
     )
-
-    st.caption("Map shows latest available data for each country.")
 
 # Data view
 with tab6:
