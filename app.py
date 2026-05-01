@@ -13,15 +13,15 @@ st.set_page_config(
 # Sidebar styling
 st.markdown("""
 <style>
+
+/* Sidebar */
 section[data-testid="stSidebar"] {
     background: rgba(15, 23, 42, 0.65);
     backdrop-filter: blur(10px);
     color: #e2e8f0;
 }
-</style>
-""", unsafe_allow_html=True)
 
-/* Improve tab readability */
+/* Tabs */
 button[data-baseweb="tab"] {
     font-size: 15px;
     color: #e5e7eb;
@@ -36,7 +36,7 @@ button[aria-selected="true"] {
     background-color: rgba(15, 23, 42, 0.9);
 }
 
-/* Dark overlay for background */
+/* Background overlay */
 .stApp::before {
     content: "";
     position: fixed;
@@ -47,25 +47,9 @@ button[aria-selected="true"] {
     background: rgba(0,0,0,0.45);
     z-index: -1;
 }
+
 </style>
 """, unsafe_allow_html=True)
-
-# Set background image
-def set_background(image_path):
-    with open(image_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-
-    st.markdown(f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/jpg;base64,{encoded}");
-        background-size: cover;
-        background-attachment: fixed;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-set_background("background.jpg")
 
 # Load dataset
 @st.cache_data
