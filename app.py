@@ -235,7 +235,7 @@ with tab4:
         fig = apply_dark_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
 
-# World map (IMPROVED)
+# World map
 with tab5:
     st.subheader("🗺️ Global Internet Usage Map")
 
@@ -261,18 +261,19 @@ with tab5:
         margin=dict(l=0, r=0, t=0, b=0)
     )
 
-  st.plotly_chart(
-    fig,
-    use_container_width=True,
-    config={
-        "scrollZoom": False,
-        "displayModeBar": False,
-        "staticPlot": False
-    }
-)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            "scrollZoom": False,
+            "displayModeBar": False,
+            "staticPlot": False
+        }
+    )
+
     st.caption("Map shows latest available data for each country.")
 
-# Data view (INDEPENDENT)
+# Data view
 with tab6:
     st.subheader("📋 Filtered Dataset")
 
