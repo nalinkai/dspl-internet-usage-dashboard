@@ -10,7 +10,18 @@ st.set_page_config(
     layout="wide"
 )
 
-# Sidebar + UI styling
+# Plot config
+PLOT_CONFIG = {
+    "displayModeBar": True,
+    "displaylogo": False,
+    "modeBarButtonsToRemove": [
+        "zoom2d", "pan2d", "select2d", "lasso2d",
+        "zoomIn2d", "zoomOut2d", "autoScale2d",
+        "resetScale2d"
+    ]
+}
+
+# UI Styling
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] {
@@ -31,6 +42,7 @@ button[aria-selected="true"] {
     background-color: rgba(15, 23, 42, 0.9);
 }
 
+/* Dark overlay */
 .stApp::before {
     content: "";
     position: fixed;
@@ -68,7 +80,7 @@ def load_data():
 
 df = load_data()
 
-# Theme function
+# Theme
 def apply_dark_theme(fig):
     fig.update_layout(
         template="plotly_dark",
@@ -141,24 +153,26 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📋 Data View"
 ])
 
-# 1. Global Trends
+# Global trend
 with tab1:
     trend = filtered_df.groupby("Year")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.line(trend, x="Year", y="Internet_Users_Percent", markers=True)
     fig.update_traces(hovertemplate="Year: %{x}<br>Usage: %{y:.2f}%")
     fig = apply_dark_theme(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-# 2. Region + Drill-down
+    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
+
+# Region
 with tab2:
     region_df = filtered_df.groupby("Region")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
     fig = apply_dark_theme(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-    # 🔥 DRILL-DOWN
+    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
+
+    # Drill-down
     selected_region_drill = st.selectbox("🔍 Select region for deeper analysis", region_df["Region"])
 
     drill_df = filtered_df[filtered_df["Region"] == selected_region_drill]
@@ -174,17 +188,19 @@ with tab2:
     fig2 = px.bar(top_countries, x="Country", y="Internet_Users_Percent",
                   title=f"Top Countries in {selected_region_drill}")
     fig2 = apply_dark_theme(fig2)
-    st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
 
-# 3. Income
+    st.plotly_chart(fig2, use_container_width=True, config=PLOT_CONFIG)
+
+# Income
 with tab3:
     income_df = filtered_df.groupby("IncomeGroup")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
     fig = apply_dark_theme(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-# 4. Country Analysis
+    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
+
+# Country Analysis
 with tab4:
     selected_compare = st.multiselect("Select up to 5 countries", country_list)
 
@@ -198,9 +214,10 @@ with tab4:
         fig = px.line(compare_df, x="Year", y="Internet_Users_Percent",
                       color="Country", markers=True)
         fig = apply_dark_theme(fig)
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-# 5. Map
+        st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
+
+# Map
 with tab5:
     map_df = filtered_df.sort_values("Year").groupby("Code").tail(1)
 
@@ -214,22 +231,32 @@ with tab5:
 
     fig.update_traces(hovertemplate="%{hovertext}<br>%{z:.2f}%")
 
+    fig.update_layout(dragmode=False)
+
     fig.update_geos(
-        bgcolor="#0e1117",
-        landcolor="#1f2a38",
-        showcountries=True
+        projection_type="natural earth",
+        showcountries=True,
+        countrycolor="gray",
+        showframe=False,
+        bgcolor="#0e1117"
     )
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
-# 6. Data
+# Data
 with tab6:
     st.dataframe(filtered_df.head(200), use_container_width=True)
 
-    st.download_button("⬇️ Download CSV",
-                       filtered_df.to_csv(index=False),
-                       "filtered_data.csv")
+    st.download_button(
+        "⬇️ Download CSV",
+        filtered_df.to_csv(index=False),
+        "filtered_data.csv"
+    )
 
 # Footer
-st.markdown("---")
-st.caption("w2055140_Nalinka Iluppalla | DSPL Individual CW")
+st.markdown("""
+<hr style="margin-top:40px;">
+<div style="text-align:center; color:#cbd5e1; padding:10px;">
+Project By: w2055140_Nalinka Iluppalla | DSPL Individual CW
+</div>
+""", unsafe_allow_html=True)
