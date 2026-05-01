@@ -18,5 +18,5 @@ This project analyzes global internet usage trends using World Bank data.
 ## Dataset
 Source: World Bank (https://data.worldbank.org/indicator/IT.NET.USER.ZS)
 
-## Live App
-Source: https://nalinkai-dspl-internet-usage-dashboard.streamlit.app/
+## Dev App
+Source: https://nalinkai-dspl-internet-usage-dashboard-dev.streamlit.app/
