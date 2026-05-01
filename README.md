@@ -1,4 +1,4 @@
-# Global Internet Usage Dashboard
+# 🌐 Global Internet Usage Dashboard
 This project analyzes global internet usage trends using World Bank data.
 
 ## Features
