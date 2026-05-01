@@ -20,21 +20,19 @@ section[data-testid="stSidebar"] {
 
 #setting a background image 
 def set_background(image_path):
+    import base64
     with open(image_path, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-    st.markdown(
-        f"""
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+
+    st.markdown(f"""
         <style>
         .stApp {{
-            background-image: url("data:image/png;base64,{encoded}");
+            background-image: url("data:image/jpg;base64,{encoded}");
             background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
         }}
         </style>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 
 set_background("background.jpg") 
 
