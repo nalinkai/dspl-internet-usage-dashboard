@@ -236,6 +236,7 @@ with tab4:
         st.plotly_chart(fig, use_container_width=True)
 
 # World map
+# World map
 with tab5:
     st.subheader("🗺️ Global Internet Usage Map")
 
@@ -265,9 +266,7 @@ with tab5:
         fig,
         use_container_width=True,
         config={
-            "scrollZoom": False,
-            "displayModeBar": False,
-            "staticPlot": False
+            "staticPlot": True   # BEST OPTION
         }
     )
 
