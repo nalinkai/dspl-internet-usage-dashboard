@@ -10,17 +10,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Plot config
-PLOT_CONFIG = {
-    "displayModeBar": True,
-    "displaylogo": False,
-    "modeBarButtonsToRemove": [
-        "zoom2d", "pan2d", "select2d", "lasso2d",
-        "zoomIn2d", "zoomOut2d", "autoScale2d",
-        "resetScale2d"
-    ]
-}
-
 # UI Styling
 st.markdown("""
 <style>
@@ -254,9 +243,8 @@ with tab6:
     )
 
 # Footer
-st.markdown("""
-<hr style="margin-top:40px;">
-<div style="text-align:center; color:#cbd5e1; padding:10px;">
-Project By: w2055140_Nalinka Iluppalla | DSPL Individual CW
-</div>
-""", unsafe_allow_html=True)
+st.markdown("---")
+st.markdown(
+    "<p style='text-align:center; color:#cbd5e1;'>Project By: w2055140_Nalinka Iluppalla | DSPL Individual CW</p>",
+    unsafe_allow_html=True
+)
