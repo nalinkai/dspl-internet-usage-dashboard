@@ -1,10 +1,11 @@
+# --------- Import Libraries ---------
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import base64
 
 
-# ------------------ PAGE CONFIG ------------------
+# --------- PAGE CONFIG ---------
 st.set_page_config(
     page_title="Global Internet Usage Dashboard",
     page_icon="🌐",
@@ -12,7 +13,7 @@ st.set_page_config(
 )
 
 
-# ------------------ PLOT CONFIG ------------------
+# --------- PLOT CONFIG ---------
 PLOT_CONFIG = {
     "displaylogo": False,
     "modeBarButtonsToRemove": [
@@ -24,7 +25,7 @@ PLOT_CONFIG = {
 }
 
 
-# ------------------ UI STYLE ------------------
+# --------- UI STYLE ---------
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] { background-color: #0f172a; }
@@ -49,7 +50,7 @@ h1 {
 """, unsafe_allow_html=True)
 
 
-# ------------------ BACKGROUND ------------------
+# --------- BACKGROUND ---------
 def set_background(image_path):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
@@ -67,7 +68,7 @@ def set_background(image_path):
 set_background("background.jpg")
 
 
-# ------------------ LOAD DATA ------------------
+# --------- LOAD DATA ---------
 @st.cache_data
 def load_data():
     return pd.read_csv("data/processed/cleaned_data.csv")
@@ -76,7 +77,7 @@ def load_data():
 df = load_data()
 
 
-# ------------------ DARK THEME ------------------
+# --------- DARK THEME ---------
 def apply_dark_theme(fig):
     fig.update_layout(
         template="plotly_dark",
@@ -87,7 +88,7 @@ def apply_dark_theme(fig):
     return fig
 
 
-# ------------------ SIDEBAR ------------------
+# --------- SIDEBAR ---------
 st.sidebar.markdown("## 🔎 Filters")
 
 year_range = st.sidebar.slider(
@@ -116,7 +117,7 @@ selected_income = st.sidebar.multiselect(
 )
 
 
-# ------------------ FILTERING ------------------
+# --------- FILTERING ---------
 filtered_df = df[
     (df["Year"] >= year_range[0]) &
     (df["Year"] <= year_range[1])
@@ -136,12 +137,12 @@ if filtered_df.empty:
     st.stop()
 
 
-# ------------------ HEADER ------------------
+# --------- HEADER ---------
 st.markdown(f"# 🌐 Global Internet Usage Dashboard ({year_range[0]} - {year_range[1]})")
-st.write("Explore internet usage across countries, regions, and income groups.")
+st.write("Explore internet usage across countries, regions and income groups.")
 
 
-# ------------------ KEY FINDINGS ------------------
+# --------- KEY FINDINGS ---------
 st.markdown("### 📌 Key Findings")
 st.markdown("""
 - Internet usage has increased significantly after 2010  
@@ -151,7 +152,7 @@ st.markdown("""
 """)
 
 
-# ------------------ KPI ------------------
+# --------- KPI ---------
 col1, col2, col3 = st.columns(3)
 
 col1.metric("🌍 Avg Usage (%)", f"{filtered_df['Internet_Users_Percent'].mean():.2f}")
@@ -159,7 +160,7 @@ col2.metric("🏆 Top Country", filtered_df.loc[filtered_df['Internet_Users_Perc
 col3.metric("📉 Lowest Country", filtered_df.loc[filtered_df['Internet_Users_Percent'].idxmin(), 'Country'])
 
 
-# ------------------ TABS ------------------
+# --------- TABS ---------
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📈 Global Trends",
     "🌍 Regional Analysis",
@@ -171,7 +172,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 ])
 
 
-# ------------------ TAB 1 ------------------
+# --------- TAB 1 ---------
 with tab1:
     st.subheader("📈 Global Internet Usage Over Time")
 
@@ -185,7 +186,7 @@ with tab1:
     st.info("Key Insight: Rapid growth observed after 2010.")
 
 
-# ------------------ TAB 2 ------------------
+# --------- TAB 2 ---------
 with tab2:
     st.subheader("🌍 Regional Comparison")
 
@@ -207,7 +208,7 @@ with tab2:
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
 
-# ------------------ TAB 3 ------------------
+# --------- TAB 3 ---------
 with tab3:
     st.subheader("💰 Income Analysis")
 
@@ -219,7 +220,7 @@ with tab3:
     st.info("Insight: Income level strongly influences internet usage.")
 
 
-# ------------------ TAB 4 ------------------
+# --------- TAB 4 ---------
 with tab4:
     st.subheader("🔎 Country Comparison")
 
@@ -238,7 +239,7 @@ with tab4:
         st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
 
-# ------------------ TAB 5 ------------------
+# --------- TAB 5 ---------
 with tab5:
     st.subheader("📊 Income vs Internet Usage (Correlation)")
 
@@ -259,7 +260,7 @@ with tab5:
 
 
 
-# ------------------ TAB 6 ------------------
+# --------- TAB 6 ---------
 with tab6:
     st.subheader("📍 Global Map")
 
@@ -280,7 +281,7 @@ with tab6:
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True)
 
 
-# ------------------ TAB 7 ------------------
+# --------- TAB 7 ---------
 with tab7:
     st.subheader("📋 Data View")
 
@@ -293,7 +294,7 @@ with tab7:
     )
 
 
-# ------------------ FOOTER ------------------
+# --------- FOOTER ---------
 st.markdown("""
 <div class='footer'>
 Project By: w2055140 Nalinka Iluppalla | DSPL Individual Coursework
