@@ -6,6 +6,7 @@ This project analyzes global internet usage trends using World Bank data.
 - Regional comparison
 - Income group comparison
 - Country-level analysis
+- Income vs Internet Usage (Correlation)
 - Interactive world map
 - Download filtered dataset
 
