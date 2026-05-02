@@ -4,7 +4,7 @@ import plotly.express as px
 import base64
 
 
-# Page configuration
+# ------------------ PAGE CONFIG ------------------
 st.set_page_config(
     page_title="Global Internet Usage Dashboard",
     page_icon="🌐",
@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 
-# Plotly configuration (remove unnecessary toolbar buttons)
+# ------------------ PLOT CONFIG ------------------
 PLOT_CONFIG = {
     "displaylogo": False,
     "modeBarButtonsToRemove": [
@@ -24,21 +24,12 @@ PLOT_CONFIG = {
 }
 
 
-# Apply UI styling
+# ------------------ UI STYLE ------------------
 st.markdown("""
 <style>
+section[data-testid="stSidebar"] { background-color: #0f172a; }
+.block-container { padding-top: 2rem; }
 
-/* Sidebar styling */
-section[data-testid="stSidebar"] {
-    background-color: #0f172a;
-}
-
-/* Page spacing */
-.block-container {
-    padding-top: 2rem;
-}
-
-/* Sticky header */
 h1 {
     position: sticky;
     top: 0;
@@ -47,13 +38,11 @@ h1 {
     z-index: 999;
 }
 
-/* Tabs styling */
 button[data-baseweb="tab"] {
     background-color: rgba(15, 23, 42, 0.8);
     border-radius: 10px;
 }
 
-/* Footer styling */
 .footer {
     text-align: center;
     padding: 15px;
@@ -61,12 +50,11 @@ button[data-baseweb="tab"] {
     margin-top: 30px;
     border-radius: 10px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
 
-# Set background image
+# ------------------ BACKGROUND ------------------
 def set_background(image_path):
     with open(image_path, "rb") as f:
         encoded = base64.b64encode(f.read()).decode()
@@ -84,7 +72,7 @@ def set_background(image_path):
 set_background("background.jpg")
 
 
-# Load dataset
+# ------------------ LOAD DATA ------------------
 @st.cache_data
 def load_data():
     return pd.read_csv("data/processed/cleaned_data.csv")
@@ -93,7 +81,7 @@ def load_data():
 df = load_data()
 
 
-# Apply dark theme to charts
+# ------------------ DARK THEME ------------------
 def apply_dark_theme(fig):
     fig.update_layout(
         template="plotly_dark",
@@ -104,7 +92,7 @@ def apply_dark_theme(fig):
     return fig
 
 
-# Sidebar filters
+# ------------------ SIDEBAR ------------------
 st.sidebar.markdown("## 🔎 Filters")
 
 year_range = st.sidebar.slider(
@@ -133,7 +121,7 @@ selected_income = st.sidebar.multiselect(
 )
 
 
-# Apply filtering
+# ------------------ FILTERING ------------------
 filtered_df = df[
     (df["Year"] >= year_range[0]) &
     (df["Year"] <= year_range[1])
@@ -148,19 +136,17 @@ if "All" not in selected_region:
 if "All" not in selected_income:
     filtered_df = filtered_df[filtered_df["IncomeGroup"].isin(selected_income)]
 
-
-# Handle empty dataset
 if filtered_df.empty:
     st.warning("No data available for selected filters.")
     st.stop()
 
 
-# Dashboard title
+# ------------------ HEADER ------------------
 st.markdown(f"# 🌐 Global Internet Usage Dashboard ({year_range[0]} - {year_range[1]})")
 st.write("Explore internet usage across countries, regions, and income groups.")
 
 
-# KPI metrics
+# ------------------ KPI ------------------
 col1, col2, col3 = st.columns(3)
 
 col1.metric("🌍 Avg Usage (%)", f"{filtered_df['Internet_Users_Percent'].mean():.2f}")
@@ -168,7 +154,7 @@ col2.metric("🏆 Top Country", filtered_df.loc[filtered_df['Internet_Users_Perc
 col3.metric("📉 Lowest Country", filtered_df.loc[filtered_df['Internet_Users_Percent'].idxmin(), 'Country'])
 
 
-# Create tabs
+# ------------------ TABS ------------------
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📈 Global Trends",
     "🌍 Regional Analysis",
@@ -179,22 +165,42 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 
-# Global trends
+# ------------------ TAB 1 ------------------
 with tab1:
+    st.subheader("📈 Global Internet Usage Over Time")
+
+    st.markdown("""
+This chart shows the overall global trend of internet usage over time. 
+It highlights how internet adoption has grown significantly across years.
+""")
+
     trend = filtered_df.groupby("Year")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.line(trend, x="Year", y="Internet_Users_Percent", markers=True)
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
+    st.info("Insight: Internet usage shows a steady increase, especially after 2010.")
 
-# Regional analysis + drill-down
+
+# ------------------ TAB 2 ------------------
 with tab2:
+    st.subheader("🌍 Regional Internet Usage Comparison")
+
+    st.markdown("""
+This chart compares average internet usage across different regions. 
+It helps identify digital gaps between regions.
+""")
+
     region_df = filtered_df.groupby("Region")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    selected_drill_region = st.selectbox("Select region for drill-down", region_df["Region"])
+    st.info("Insight: Developed regions show higher internet penetration.")
+
+    st.markdown("### 🔍 Drill-down by Region")
+
+    selected_drill_region = st.selectbox("Select region", region_df["Region"])
 
     drill_df = filtered_df[filtered_df["Region"] == selected_drill_region]
     top_countries = drill_df.groupby("Country")["Internet_Users_Percent"].mean().nlargest(10).reset_index()
@@ -203,16 +209,31 @@ with tab2:
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
 
-# Income analysis
+# ------------------ TAB 3 ------------------
 with tab3:
+    st.subheader("💰 Internet Usage by Income Group")
+
+    st.markdown("""
+This chart shows how internet usage differs by income levels. 
+It highlights the relationship between economic status and digital access.
+""")
+
     income_df = filtered_df.groupby("IncomeGroup")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
+    st.info("Insight: High-income countries have the highest internet usage.")
 
-# Country comparison
+
+# ------------------ TAB 4 ------------------
 with tab4:
+    st.subheader("🔎 Country Comparison")
+
+    st.markdown("""
+Select up to 5 countries to compare their internet usage trends over time.
+""")
+
     selected_compare = st.multiselect("Select up to 5 countries", sorted(df["Country"].unique()))
 
     if len(selected_compare) == 0:
@@ -225,9 +246,18 @@ with tab4:
         fig = px.line(compare_df, x="Year", y="Internet_Users_Percent", color="Country")
         st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
+        st.info("Insight: Countries show different growth patterns based on development.")
 
-# World map visualization
+
+# ------------------ TAB 5 ------------------
 with tab5:
+    st.subheader("🗺️ Global Internet Usage Map")
+
+    st.markdown("""
+This map displays the latest internet usage percentage for each country.
+Darker colors indicate higher usage.
+""")
+
     map_df = filtered_df.sort_values("Year").groupby("Code").tail(1)
 
     fig = px.choropleth(
@@ -250,9 +280,18 @@ with tab5:
         }
     )
 
+    st.info("Insight: Regions like North America and Europe show higher penetration.")
 
-# Data table view
+
+# ------------------ TAB 6 ------------------
 with tab6:
+    st.subheader("📋 Filtered Dataset")
+
+    st.markdown("""
+This table shows filtered data based on selected criteria.
+You can download the dataset for further analysis.
+""")
+
     st.dataframe(filtered_df.head(200), use_container_width=True)
 
     st.download_button(
@@ -262,7 +301,7 @@ with tab6:
     )
 
 
-# Footer
+# ------------------ FOOTER ------------------
 st.markdown("""
 <div class='footer'>
 Project By: w2055140 Nalinka Iluppalla | DSPL Coursework
