@@ -38,11 +38,6 @@ h1 {
     z-index: 999;
 }
 
-button[data-baseweb="tab"] {
-    background-color: rgba(15, 23, 42, 0.8);
-    border-radius: 10px;
-}
-
 .footer {
     text-align: center;
     padding: 15px;
@@ -146,6 +141,16 @@ st.markdown(f"# 🌐 Global Internet Usage Dashboard ({year_range[0]} - {year_ra
 st.write("Explore internet usage across countries, regions, and income groups.")
 
 
+# ------------------ KEY FINDINGS ------------------
+st.markdown("### 📌 Key Findings")
+st.markdown("""
+- Internet usage has increased significantly after 2010  
+- High-income countries dominate global internet penetration  
+- Strong regional disparities still exist  
+- Developing regions show gradual but steady growth  
+""")
+
+
 # ------------------ KPI ------------------
 col1, col2, col3 = st.columns(3)
 
@@ -155,12 +160,13 @@ col3.metric("📉 Lowest Country", filtered_df.loc[filtered_df['Internet_Users_P
 
 
 # ------------------ TABS ------------------
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📈 Global Trends",
     "🌍 Regional Analysis",
     "💰 Income Analysis",
     "🔎 Country Analysis",
-    "🗺️ World Map",
+    "📍 World Map",
+    "📊 Correlation",
     "📋 Data View"
 ])
 
@@ -169,40 +175,32 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 with tab1:
     st.subheader("📈 Global Internet Usage Over Time")
 
-    st.markdown("""
-This chart shows the overall global trend of internet usage over time. 
-It highlights how internet adoption has grown significantly across years.
-""")
+    st.markdown("Shows global growth trend of internet usage.")
 
     trend = filtered_df.groupby("Year")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.line(trend, x="Year", y="Internet_Users_Percent", markers=True)
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.info("Insight: Internet usage shows a steady increase, especially after 2010.")
+    st.info("Key Insight: Rapid growth observed after 2010.")
 
 
 # ------------------ TAB 2 ------------------
 with tab2:
-    st.subheader("🌍 Regional Internet Usage Comparison")
-
-    st.markdown("""
-This chart compares average internet usage across different regions. 
-It helps identify digital gaps between regions.
-""")
+    st.subheader("🌍 Regional Comparison")
 
     region_df = filtered_df.groupby("Region")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.info("Insight: Developed regions show higher internet penetration.")
+    st.info("Observation: Developed regions have higher penetration.")
 
-    st.markdown("### 🔍 Drill-down by Region")
+    st.markdown("### 🔍 Drill-down")
 
     selected_drill_region = st.selectbox("Select region", region_df["Region"])
-
     drill_df = filtered_df[filtered_df["Region"] == selected_drill_region]
+
     top_countries = drill_df.groupby("Country")["Internet_Users_Percent"].mean().nlargest(10).reset_index()
 
     fig = px.bar(top_countries, x="Country", y="Internet_Users_Percent")
@@ -211,33 +209,26 @@ It helps identify digital gaps between regions.
 
 # ------------------ TAB 3 ------------------
 with tab3:
-    st.subheader("💰 Internet Usage by Income Group")
-
-    st.markdown("""
-This chart shows how internet usage differs by income levels. 
-It highlights the relationship between economic status and digital access.
-""")
+    st.subheader("💰 Income Analysis")
 
     income_df = filtered_df.groupby("IncomeGroup")["Internet_Users_Percent"].mean().reset_index()
 
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.info("Insight: High-income countries have the highest internet usage.")
+    st.info("Insight: Income level strongly influences internet usage.")
 
 
 # ------------------ TAB 4 ------------------
 with tab4:
     st.subheader("🔎 Country Comparison")
 
-    st.markdown("""
-Select up to 5 countries to compare their internet usage trends over time.
-""")
+    st.markdown("Select up to 5 countries to compare trends.")
 
-    selected_compare = st.multiselect("Select up to 5 countries", sorted(df["Country"].unique()))
+    selected_compare = st.multiselect("Select countries (max 5)", sorted(df["Country"].unique()))
 
     if len(selected_compare) == 0:
-        st.info("Please select countries.")
+        st.info("Please select at least one country.")
     elif len(selected_compare) > 5:
         st.warning("Maximum 5 countries allowed.")
     else:
@@ -246,17 +237,12 @@ Select up to 5 countries to compare their internet usage trends over time.
         fig = px.line(compare_df, x="Year", y="Internet_Users_Percent", color="Country")
         st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-        st.info("Insight: Countries show different growth patterns based on development.")
-
 
 # ------------------ TAB 5 ------------------
 with tab5:
-    st.subheader("🗺️ Global Internet Usage Map")
+    st.subheader("📍 Global Map")
 
-    st.markdown("""
-This map displays the latest internet usage percentage for each country.
-Darker colors indicate higher usage.
-""")
+    st.markdown("Latest year data is used. Darker color = higher usage.")
 
     map_df = filtered_df.sort_values("Year").groupby("Code").tail(1)
 
@@ -270,27 +256,32 @@ Darker colors indicate higher usage.
 
     fig.update_geos(fitbounds="locations", visible=False)
 
-    st.plotly_chart(
-        apply_dark_theme(fig),
-        use_container_width=True,
-        config={
-            "displaylogo": False,
-            "scrollZoom": False,
-            "modeBarButtonsToAdd": ["toImage"]
-        }
-    )
-
-    st.info("Insight: Regions like North America and Europe show higher penetration.")
+    st.plotly_chart(apply_dark_theme(fig), use_container_width=True)
 
 
 # ------------------ TAB 6 ------------------
 with tab6:
-    st.subheader("📋 Filtered Dataset")
+    st.subheader("📊 Income vs Internet Usage (Correlation)")
 
-    st.markdown("""
-This table shows filtered data based on selected criteria.
-You can download the dataset for further analysis.
-""")
+    latest_df = filtered_df.sort_values("Year").groupby("Country").tail(1)
+
+    fig = px.scatter(
+        latest_df,
+        x="IncomeGroup",
+        y="Internet_Users_Percent",
+        color="Region",
+        size="Internet_Users_Percent",
+        hover_name="Country"
+    )
+
+    st.plotly_chart(apply_dark_theme(fig), use_container_width=True)
+
+    st.info("Insight: Higher income groups tend to have higher internet usage.")
+
+
+# ------------------ TAB 7 ------------------
+with tab7:
+    st.subheader("📋 Data View")
 
     st.dataframe(filtered_df.head(200), use_container_width=True)
 
@@ -304,6 +295,6 @@ You can download the dataset for further analysis.
 # ------------------ FOOTER ------------------
 st.markdown("""
 <div class='footer'>
-Project By: w2055140 Nalinka Iluppalla | DSPL Coursework
+Project By: w2055140 Nalinka Iluppalla | DSPL Individual Coursework
 </div>
 """, unsafe_allow_html=True)
