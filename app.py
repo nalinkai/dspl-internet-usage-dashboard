@@ -165,8 +165,8 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "🌍 Regional Analysis",
     "💰 Income Analysis",
     "🔎 Country Analysis",
-    "📍 World Map",
     "📊 Correlation",
+    "📍 World Map",
     "📋 Data View"
 ])
 
@@ -240,6 +240,27 @@ with tab4:
 
 # ------------------ TAB 5 ------------------
 with tab5:
+    st.subheader("📊 Income vs Internet Usage (Correlation)")
+
+    latest_df = filtered_df.sort_values("Year").groupby("Country").tail(1)
+
+    fig = px.scatter(
+        latest_df,
+        x="IncomeGroup",
+        y="Internet_Users_Percent",
+        color="Region",
+        size="Internet_Users_Percent",
+        hover_name="Country"
+    )
+
+    st.plotly_chart(apply_dark_theme(fig), use_container_width=True)
+
+    st.info("Insight: Higher income groups tend to have higher internet usage.")
+
+
+
+# ------------------ TAB 6 ------------------
+with tab6:
     st.subheader("📍 Global Map")
 
     st.markdown("Latest year data is used. Darker color = higher usage.")
@@ -257,26 +278,6 @@ with tab5:
     fig.update_geos(fitbounds="locations", visible=False)
 
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True)
-
-
-# ------------------ TAB 6 ------------------
-with tab6:
-    st.subheader("📊 Income vs Internet Usage (Correlation)")
-
-    latest_df = filtered_df.sort_values("Year").groupby("Country").tail(1)
-
-    fig = px.scatter(
-        latest_df,
-        x="IncomeGroup",
-        y="Internet_Users_Percent",
-        color="Region",
-        size="Internet_Users_Percent",
-        hover_name="Country"
-    )
-
-    st.plotly_chart(apply_dark_theme(fig), use_container_width=True)
-
-    st.info("Insight: Higher income groups tend to have higher internet usage.")
 
 
 # ------------------ TAB 7 ------------------
