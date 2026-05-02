@@ -195,7 +195,7 @@ with tab2:
     fig = px.bar(region_df, x="Region", y="Internet_Users_Percent", color="Region")
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.info("Observation: Developed regions have higher penetration.")
+    st.info("Observation: Developed regions demonstrate significantly higher internet penetration levels")
 
     st.markdown("### 🔍 Drill-down")
 
@@ -217,7 +217,7 @@ with tab3:
     fig = px.bar(income_df, x="IncomeGroup", y="Internet_Users_Percent", color="IncomeGroup")
     st.plotly_chart(apply_dark_theme(fig), use_container_width=True, config=PLOT_CONFIG)
 
-    st.info("Insight: Income level strongly influences internet usage.")
+    st.info("Insight: Internet usage is strongly correlated with income level, highlighting the global digital divide")
 
 
 # --------- TAB 4 ---------
