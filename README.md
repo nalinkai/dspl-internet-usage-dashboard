@@ -6,6 +6,7 @@ This project analyzes global internet usage trends using World Bank data.
 - Regional comparison
 - Income group comparison
 - Country-level analysis
+- Income vs Internet Usage (Correlation)
 - Interactive world map
 - Download filtered dataset
 
@@ -18,5 +19,5 @@ This project analyzes global internet usage trends using World Bank data.
 ## Dataset
 Source: World Bank (https://data.worldbank.org/indicator/IT.NET.USER.ZS)
 
-## Dev App
-Source: https://nalinkai-dspl-internet-usage-dashboard-dev.streamlit.app/
+## Live App
+Source: https://nalinkai-dspl-internet-usage-dashboard-live.streamlit.app/
